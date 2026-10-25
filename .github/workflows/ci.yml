@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend - testes e pacote
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Banco descartável só para esta execução; os testes de integração precisam de PostgreSQL real.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: reconstroi
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-postgres-descartavel
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d reconstroi"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: jdbc:postgresql://localhost:5432/reconstroi
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: ci-postgres-descartavel
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Gerar chave JWT da execução
+        run: echo "JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')" >> "$GITHUB_ENV"
+
+      - name: Testes e pacote (mvn verify)
+        run: mvn -B -f backend/pom.xml verify
+
+      - name: Relatórios de teste (em caso de falha)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-relatorios-de-teste
+          path: backend/target/surefire-reports
+          if-no-files-found: ignore
+
+      - name: Guardar JAR do backend
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/backend-*.jar
+          retention-days: 14
+
+  front:
+    name: Front - lint e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: front
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build de produção
+        run: npm run build
+
+  desktop:
+    name: Desktop - compilar e empacotar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: desktop/pom.xml
+
+      - name: Compilar e empacotar (mvn package)
+        run: mvn -B -f desktop/pom.xml package
+
+      - name: Guardar JAR do desktop
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-jar
+          path: desktop/target/reconstroi-desktop.jar
+          retention-days: 14
+
+  crud-basico:
+    name: CRUD acadêmico - compilar
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Compilar fontes (javac --release 17)
+        run: |
+          mkdir -p "$RUNNER_TEMP/crud-classes"
+          javac -encoding UTF-8 --release 17 -cp "crud-basico-mvc/lib/*" \
+            -d "$RUNNER_TEMP/crud-classes" \
+            $(find crud-basico-mvc/src -name '*.java')
