@@ -1,0 +1,68 @@
+# Dependências e saídas de build
+**/node_modules/
+**/target/
+**/.next/
+**/bin/
+**/obj/
+**/out/
+front/next-env.d.ts
+
+# Empacotamento local (executável, runtime extraído, SDK e caches)
+dist/
+packaging/work/
+packaging/work-v3/
+packaging/tools/
+packaging/ReConstroi.Launcher/payload.zip
+packaging/*.log
+
+# IDE e índices do Visual Studio / Copilot
+.vs/
+.idea/
+CopilotIndices/
+*.suo
+*.wsuo
+*.user
+*.vsidx
+*.sqlite
+*.db
+*.db-shm
+*.db-wal
+*.DS_Store
+Thumbs.db
+
+# Segredos e configuração local
+.env
+!.env.example
+reconstroi.env
+crud-basico-mvc/banco.properties
+
+# Dados, uploads e logs locais
+backend/uploads/
+*.log
+*.err.log
+*.out.log
+*.dump
+
+# Artefatos pessoais e de entrega (não fazem parte do código)
+entrega/
+docx_work_*/
+analysis/
+*.zip
+*.exe
+*.rar
+*.docx
+crud-basico-mvc/CrudBasico.jar
+crud-basico-mvc/build/
+crud-basico-mvc/build-test/
+crud-basico-mvc/CRUD-Basico-MVC/
+
+# Git aninhado de outra cópia (o repositório raiz versiona o front)
+front/.git/
+
+# Diagramas de modelagem (fonte de trabalho, nao necessarios para rodar)
+*.asta
+*.asta.bak
+
+# Classes compiladas do CRUD academico (gerado por Compilar.ps1)
+crud-basico-mvc/CrudBasico/
+

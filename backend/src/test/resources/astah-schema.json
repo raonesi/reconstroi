@@ -1,0 +1,462 @@
+{
+  "doacao": [
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "concluida_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "data",
+      "type": "String"
+    },
+    {
+      "name": "doador",
+      "type": "String"
+    },
+    {
+      "name": "material",
+      "type": "String"
+    },
+    {
+      "name": "reserva_id <<FK, UNIQUE>>",
+      "type": "Long"
+    },
+    {
+      "name": "material_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "doador_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "beneficiario_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "quantidade",
+      "type": "int"
+    },
+    {
+      "name": "quantidade_reaproveitada",
+      "type": "int"
+    },
+    {
+      "name": "co2_evitado_kg",
+      "type": "Decimal"
+    },
+    {
+      "name": "peso_estimado_kg",
+      "type": "Decimal"
+    },
+    {
+      "name": "residuos_evitados_kg",
+      "type": "Decimal"
+    }
+  ],
+  "categoria": [
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "nome <<UNIQUE>>",
+      "type": "String"
+    },
+    {
+      "name": "slug <<UNIQUE>>",
+      "type": "String"
+    },
+    {
+      "name": "ativo",
+      "type": "boolean"
+    }
+  ],
+  "usuario": [
+    {
+      "name": "email",
+      "type": "String"
+    },
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "nome",
+      "type": "String"
+    },
+    {
+      "name": "telefone",
+      "type": "String"
+    },
+    {
+      "name": "tipo",
+      "type": "String"
+    },
+    {
+      "name": "senha",
+      "type": "String"
+    },
+    {
+      "name": "ativo",
+      "type": "boolean"
+    },
+    {
+      "name": "cidade",
+      "type": "String"
+    },
+    {
+      "name": "estado_uf",
+      "type": "String"
+    },
+    {
+      "name": "documento",
+      "type": "String"
+    },
+    {
+      "name": "criado_em",
+      "type": "DateTime"
+    }
+  ],
+  "flyway_schema_history": [
+    {
+      "name": "installed_on",
+      "type": "DateTime"
+    },
+    {
+      "name": "installed_rank <<PK>>",
+      "type": "int"
+    },
+    {
+      "name": "version",
+      "type": "String"
+    },
+    {
+      "name": "description",
+      "type": "String"
+    },
+    {
+      "name": "type",
+      "type": "String"
+    },
+    {
+      "name": "script",
+      "type": "String"
+    },
+    {
+      "name": "checksum",
+      "type": "int"
+    },
+    {
+      "name": "installed_by",
+      "type": "String"
+    },
+    {
+      "name": "execution_time",
+      "type": "int"
+    },
+    {
+      "name": "success",
+      "type": "boolean"
+    }
+  ],
+  "foto_material": [
+    {
+      "name": "criada_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "material_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "nome_arquivo",
+      "type": "String"
+    },
+    {
+      "name": "nome_original",
+      "type": "String"
+    },
+    {
+      "name": "content_type",
+      "type": "String"
+    },
+    {
+      "name": "url",
+      "type": "String"
+    }
+  ],
+  "material": [
+    {
+      "name": "data_cadastro",
+      "type": "DateTime"
+    },
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "descricao",
+      "type": "String"
+    },
+    {
+      "name": "estado",
+      "type": "String"
+    },
+    {
+      "name": "nome",
+      "type": "String"
+    },
+    {
+      "name": "quantidade",
+      "type": "int"
+    },
+    {
+      "name": "usuario_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "categoria",
+      "type": "String"
+    },
+    {
+      "name": "cidade",
+      "type": "String"
+    },
+    {
+      "name": "endereco_retirada",
+      "type": "String"
+    },
+    {
+      "name": "unidade",
+      "type": "String"
+    },
+    {
+      "name": "proprietario_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "categoria_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "estado_conservacao",
+      "type": "String"
+    },
+    {
+      "name": "status_material",
+      "type": "String"
+    },
+    {
+      "name": "estado_uf",
+      "type": "String"
+    },
+    {
+      "name": "atualizado_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "excluido",
+      "type": "boolean"
+    },
+    {
+      "name": "excluido_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "motivo_remocao",
+      "type": "String"
+    },
+    {
+      "name": "versao",
+      "type": "Long"
+    }
+  ],
+  "denuncia": [
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "denunciante_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "material_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "motivo",
+      "type": "String"
+    },
+    {
+      "name": "status",
+      "type": "String"
+    },
+    {
+      "name": "criado_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "resolvido_em",
+      "type": "DateTime"
+    }
+  ],
+  "reserva": [
+    {
+      "name": "criado_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "material",
+      "type": "String"
+    },
+    {
+      "name": "quantidade",
+      "type": "int"
+    },
+    {
+      "name": "solicitante",
+      "type": "String"
+    },
+    {
+      "name": "status",
+      "type": "String"
+    },
+    {
+      "name": "material_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "solicitante_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "quantidade_solicitada",
+      "type": "int"
+    },
+    {
+      "name": "status_reserva",
+      "type": "String"
+    },
+    {
+      "name": "mensagem",
+      "type": "String"
+    },
+    {
+      "name": "atualizado_em",
+      "type": "DateTime"
+    }
+  ],
+  "sessao": [
+    {
+      "name": "expira_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "token_hash <<UNIQUE>>",
+      "type": "String"
+    },
+    {
+      "name": "usuario_id <<FK>>",
+      "type": "Long"
+    }
+  ],
+  "token_recuperacao_senha": [
+    {
+      "name": "expira_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "token_hash <<UNIQUE>>",
+      "type": "String"
+    },
+    {
+      "name": "usuario_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "usado",
+      "type": "boolean"
+    }
+  ],
+  "notificacao": [
+    {
+      "name": "criada_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "usuario_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "titulo",
+      "type": "String"
+    },
+    {
+      "name": "mensagem",
+      "type": "String"
+    },
+    {
+      "name": "lida",
+      "type": "boolean"
+    }
+  ],
+  "historico_acao": [
+    {
+      "name": "ocorrido_em",
+      "type": "DateTime"
+    },
+    {
+      "name": "id <<PK>>",
+      "type": "Long"
+    },
+    {
+      "name": "usuario_id <<FK>>",
+      "type": "Long"
+    },
+    {
+      "name": "tipo_acao",
+      "type": "String"
+    },
+    {
+      "name": "descricao",
+      "type": "String"
+    },
+    {
+      "name": "ip",
+      "type": "String"
+    },
+    {
+      "name": "recurso_tipo",
+      "type": "String"
+    },
+    {
+      "name": "recurso_id",
+      "type": "Long"
+    }
+  ]
+}

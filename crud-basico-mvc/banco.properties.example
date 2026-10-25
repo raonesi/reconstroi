@@ -1,0 +1,3 @@
+url=jdbc:postgresql://localhost:5432/crud_mvc
+usuario=postgres
+senha=SUA_SENHA_DO_POSTGRES

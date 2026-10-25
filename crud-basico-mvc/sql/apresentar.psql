@@ -1,0 +1,5 @@
+\pset pager off
+\conninfo
+\d material
+SELECT id, nome, quantidade, descricao FROM material ORDER BY id;
+\echo Digite SELECT * FROM material; para atualizar os registros.
