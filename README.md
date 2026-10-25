@@ -12,14 +12,16 @@ Plataforma completa de reaproveitamento de materiais de construção. O projeto 
 
 ## Execução local
 
-Pré-requisitos: Java 17, Node.js 22 e PostgreSQL disponível em `localhost:5432`, com banco `reconstroi`, usuário `postgres` e senha `123`. Esses valores podem ser substituídos pelas variáveis `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD`.
+Pré-requisitos: Java 17, Node.js 22 e PostgreSQL 17 ou 18 disponível em `localhost:5432`, com banco `reconstroi` e usuário `postgres`. A senha é definida por você: não use exemplos prontos, escolha uma senha forte e informe-a na variável `DATABASE_PASSWORD`. Os valores de conexão podem ser substituídos pelas variáveis `DATABASE_URL` e `DATABASE_USERNAME`.
+
+Mantenha o PostgreSQL acessível somente pelo próprio computador: em `postgresql.conf`, deixe `listen_addresses = 'localhost'`, e em `pg_hba.conf` libere apenas `127.0.0.1` e `::1`. Assim o banco não fica disponível na rede local.
 
 O backend **não traz** segredo nem senha de banco padrão: sem `JWT_SECRET` (Base64, mínimo de 32 bytes) e `DATABASE_PASSWORD` a aplicação se recusa a iniciar, inclusive os testes. Gere uma chave de desenvolvimento e defina as variáveis no terminal antes de rodar a API ou os testes:
 
 ```powershell
 $bytes = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
 $env:JWT_SECRET = [Convert]::ToBase64String($bytes)
-$env:DATABASE_PASSWORD = "123"
+$env:DATABASE_PASSWORD = "<a-senha-do-seu-postgres>"
 ```
 
 Cada chave é específica do ambiente onde foi gerada: nunca reutilize a de um ambiente em outro.
@@ -53,8 +55,8 @@ de iniciar o backend. Esse comando inicia somente o cluster já existente, em
 `localhost:5432`; não recria nem apaga os dados. Mantenha a pasta `pgsql` em Downloads.
 O servidor não foi instalado como serviço de inicialização automática.
 
-Conexão local: banco `reconstroi`, usuário `postgres` e senha `123`, conforme a
-configuração de desenvolvimento acima. No pgAdmin, registre um servidor usando
+Conexão local: banco `reconstroi`, usuário `postgres` e a senha que você definiu
+em `DATABASE_PASSWORD`. No pgAdmin, registre um servidor usando
 host `localhost`, porta `5432` e banco de manutenção `postgres`; após conectar,
 `reconstroi` aparece em Databases. O pgAdmin pode ser fechado sem parar o servidor.
 
@@ -77,7 +79,7 @@ Para criar o primeiro administrador local, inicie o backend definindo:
 
 ```powershell
 $env:ADMIN_EMAIL="admin@reconstroi.local"
-$env:ADMIN_PASSWORD="UmaSenhaForte123!"
+$env:ADMIN_PASSWORD="<defina-uma-senha-forte>"
 .\mvnw.cmd spring-boot:run
 ```
 
