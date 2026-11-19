@@ -55,7 +55,7 @@ internal static class Program
 internal sealed class LauncherContext : ApplicationContext
 {
     // Aumente a cada mudança no pacote interno: força a extração da versão nova.
-    internal const string AppVersion = "5";
+    internal const string AppVersion = "6";
     private readonly NotifyIcon tray;
     private readonly string appRoot;
     private readonly string runtimeRoot;

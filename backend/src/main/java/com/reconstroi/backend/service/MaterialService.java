@@ -115,6 +115,12 @@ public class MaterialService {
         if (material.getStatus() != StatusMaterial.DISPONIVEL)
             throw new FluxoInvalidoException("Somente materiais disponíveis podem ser editados.");
         validarRequest(request);
+        // Uma solicitação pendente não pode ficar maior que o lote: senão o doador aprovaria algo que não tem.
+        int maiorPendente = reservaRepository.findByMaterialRelacionadoIdAndStatusReserva(id, StatusReserva.SOLICITADA).stream()
+            .mapToInt(Reserva::getQuantidadeSolicitada).max().orElse(0);
+        if (request.quantidade() < maiorPendente)
+            throw new FluxoInvalidoException("Há uma solicitação pendente de " + maiorPendente + " " + material.getUnidade()
+                + ". Recuse-a ou informe uma quantidade igual ou maior.");
         apply(material, request);
         historicoService.registrar(usuario, TipoAcaoHistorico.MATERIAL_EDITADO,
             "Material “" + material.getNome() + "” editado.", "MATERIAL", material.getId());

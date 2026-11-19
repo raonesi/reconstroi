@@ -116,6 +116,28 @@ class ApiSecurityIntegrationTests {
     }
 
     @Test
+    void naoDeixaLoteFicarMenorQueSolicitacaoPendenteNemAprovarAcimaDoLote() throws Exception {
+        String donor = register("Doador Quantidade", "doador-quantidade@reconstroi.local", "DOADOR_PESSOA_FISICA",
+            "DOADOR", "MATERIAL_CADASTRAR");
+        String ong = register("ONG Quantidade", "ong-quantidade@reconstroi.local", "BENEFICIARIO_ONG",
+            "BENEFICIARIO", "RESERVA_SOLICITAR");
+        long materialId = createMaterial("Telhas para quantidade", 50, donor);
+        long reservaId = requestReservation(materialId, 40, ong);
+
+        // Reduzir o lote para 5 com uma solicitação de 40 pendente é recusado.
+        mockMvc.perform(put("/materiais/{id}", materialId).header(auth(), bearer(donor)).contentType(MediaType.APPLICATION_JSON)
+            .content(materialJson("Telhas para quantidade", 5, true)))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("solicitação pendente de 40")));
+        // Igual ou acima da solicitação continua permitido.
+        mockMvc.perform(put("/materiais/{id}", materialId).header(auth(), bearer(donor)).contentType(MediaType.APPLICATION_JSON)
+            .content(materialJson("Telhas para quantidade", 40, true)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.quantidade").value(40));
+
+        action(reservaId, "aprovar", donor, "APROVADA");
+    }
+
+    @Test
     void executaFluxoCompletoSemPularEtapasEPreservaDoacaoEHistorico() throws Exception {
         String donor = register("Doador Fluxo", "doador-fluxo-novo@reconstroi.local", "DOADOR_PESSOA_FISICA",
             "DOADOR", "MATERIAL_CADASTRAR");
@@ -133,6 +155,20 @@ class ApiSecurityIntegrationTests {
             .andExpect(jsonPath("$[0].quantidade").value(20))
             .andExpect(jsonPath("$[0].pesoEstimadoKg").value(org.hamcrest.Matchers.greaterThan(0.0)))
             .andExpect(jsonPath("$[0].co2EvitadoKg").value(org.hamcrest.Matchers.greaterThan(0.0)));
+
+        // Doação parcial (20 de 100): a sobra volta a ficar disponível.
+        mockMvc.perform(get("/materiais/{id}", materialId).header(auth(), bearer(donor))).andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("DISPONIVEL")).andExpect(jsonPath("$.quantidade").value(80));
+
+        // Outro beneficiário leva o restante; aí o lote é encerrado.
+        String second = register("ONG Restante", "ong-restante@reconstroi.local", "BENEFICIARIO_ONG",
+            "BENEFICIARIO", "RESERVA_SOLICITAR");
+        long restoId = requestReservation(materialId, 80, second);
+        action(restoId, "aprovar", donor, "APROVADA");
+        action(restoId, "confirmar-retirada", donor, "RETIRADA");
+        action(restoId, "finalizar", donor, "FINALIZADA");
+        mockMvc.perform(get("/materiais/{id}", materialId).header(auth(), bearer(donor))).andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("FINALIZADO"));
 
         mockMvc.perform(put("/materiais/{id}", materialId).header(auth(), bearer(donor)).contentType(MediaType.APPLICATION_JSON)
             .content(materialJson("Não editar finalizado", 100, false))).andExpect(status().isConflict());

@@ -42,7 +42,8 @@ public class MateriaisVIEW extends JPanel implements Atualizavel {
     }
 
     private JPanel filtros() {
-        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
+        // Quebra para a linha de baixo em janelas estreitas sem esconder o botão "Pesquisar".
+        JPanel painel = new JPanel(new FluxoQuebravel(FlowLayout.LEFT, 8, 5));
         painel.setOpaque(false);
         Estilo.placeholder(busca, "Ex.: tijolo, telha...");
         Estilo.placeholder(cidade, "Qualquer cidade");

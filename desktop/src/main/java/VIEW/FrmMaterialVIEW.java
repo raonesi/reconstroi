@@ -32,7 +32,8 @@ public class FrmMaterialVIEW extends JDialog {
         super(pai, material == null ? "Cadastrar material" : "Editar material", true);
         this.material = material;
         this.aoSalvar = aoSalvar;
-        setSize(660, 760);
+        // Nunca maior que a tela: em notebooks com escala 125%/150% o botão SALVAR ficava fora da tela.
+        Estilo.tamanhoNaTela(this, 660, 720);
         setLocationRelativeTo(pai);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -61,6 +62,7 @@ public class FrmMaterialVIEW extends JDialog {
 
         if (material == null) {
             JList<File> lista = new JList<>(arquivosModel);
+            lista.setVisibleRowCount(4);
             JButton fotos = new JButton("Selecionar fotos");
             fotos.addActionListener(evento -> selecionarFotos());
             JPanel fotosPainel = new JPanel(new BorderLayout(4, 4));

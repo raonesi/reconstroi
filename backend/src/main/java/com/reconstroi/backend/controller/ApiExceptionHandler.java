@@ -9,6 +9,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import com.reconstroi.backend.exception.BusinessException;
 
 @RestControllerAdvice
@@ -43,6 +45,25 @@ public class ApiExceptionHandler {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
             "O corpo da requisição contém campos ou valores inválidos. Confira os valores permitidos para os campos ENUM.");
         detail.setTitle("Dados inválidos");
+        return detail;
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    ProblemDetail parteAusente(MissingServletRequestPartException exception) {
+        String parte = exception.getRequestPartName();
+        String mensagem = "fotos".equals(parte) || "arquivo".equals(parte)
+            ? "Envie ao menos uma foto do material (JPG, PNG ou WebP de até 5 MB)."
+            : "A requisição está incompleta: falta a parte \"" + parte + "\".";
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, mensagem);
+        detail.setTitle("Dados inválidos");
+        return detail;
+    }
+
+    /** @PreAuthorize negado dentro do controller: devolve 403 com a mesma estrutura dos demais erros. */
+    @ExceptionHandler(AccessDeniedException.class)
+    ProblemDetail semPermissao(AccessDeniedException exception) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Seu perfil não tem permissão para esta ação.");
+        detail.setTitle("Acesso negado");
         return detail;
     }
 

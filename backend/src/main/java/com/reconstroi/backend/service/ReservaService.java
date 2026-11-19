@@ -104,6 +104,9 @@ public class ReservaService {
         exigir(reserva, StatusReserva.SOLICITADA);
         Material material = materialService.findForUpdate(reserva.getMaterialRelacionado().getId());
         if (material.getStatus() != StatusMaterial.DISPONIVEL) throw new MaterialNaoDisponivelException();
+        if (reserva.getQuantidadeSolicitada() > material.getQuantidade())
+            throw new QuantidadeInvalidaException("A quantidade solicitada (" + reserva.getQuantidadeSolicitada()
+                + ") supera a disponível no lote (" + material.getQuantidade() + ").");
         reserva.setStatusReserva(StatusReserva.APROVADA);
         material.setStatus(StatusMaterial.RESERVADO);
         historicoService.registrar(usuario, TipoAcaoHistorico.SOLICITACAO_ACEITA,
@@ -166,7 +169,16 @@ public class ReservaService {
         validarDoador(reserva, usuario);
         exigir(reserva, StatusReserva.RETIRADA);
         reserva.setStatusReserva(StatusReserva.FINALIZADA);
-        reserva.getMaterialRelacionado().setStatus(StatusMaterial.FINALIZADO);
+        // Reserva parcial: o que sobrou do lote volta a ficar disponível para outros beneficiários.
+        // Só quando o lote inteiro é doado o material é encerrado.
+        Material material = reserva.getMaterialRelacionado();
+        int sobra = material.getQuantidade() - reserva.getQuantidadeSolicitada();
+        if (sobra > 0) {
+            material.setQuantidade(sobra);
+            material.setStatus(StatusMaterial.DISPONIVEL);
+        } else {
+            material.setStatus(StatusMaterial.FINALIZADO);
+        }
         if (doacaoRepository.findByReservaRelacionadaId(id).isEmpty()) {
             var impacto = impactoService.calcular(reserva.getMaterialRelacionado(), reserva.getQuantidadeSolicitada());
             Doacao doacao = new Doacao();
@@ -182,7 +194,9 @@ public class ReservaService {
             doacaoRepository.save(doacao);
         }
         historicoService.registrar(usuario, TipoAcaoHistorico.DOACAO_FINALIZADA,
-            "Doação finalizada para “" + reserva.getMaterialRelacionado().getNome() + "”.", "RESERVA", reserva.getId());
+            "Doação finalizada para “" + material.getNome() + "”."
+                + (sobra > 0 ? " Sobraram " + sobra + " " + material.getUnidade() + " disponíveis." : ""),
+            "RESERVA", reserva.getId());
         return toResponse(reserva);
     }
 

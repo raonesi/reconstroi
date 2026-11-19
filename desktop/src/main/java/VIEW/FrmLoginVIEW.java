@@ -18,7 +18,8 @@ public class FrmLoginVIEW extends JFrame {
         super("ReConstrói — Login");
         setIconImages(Estilo.iconesAplicativo());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(960, 600));
+        setMinimumSize(new Dimension(760, 520));
+        Estilo.tamanhoNaTela(this, 980, 620);
         setLocationRelativeTo(null);
 
         JPanel raiz = new JPanel(new GridLayout(1, 2));

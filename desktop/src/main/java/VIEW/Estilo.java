@@ -194,10 +194,36 @@ public final class Estilo {
 
     /** Barra de botões alinhada à direita, com o espaçamento padrão das telas. */
     public static JPanel barraAcoes() {
-        JPanel painel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel painel = new JPanel(new FluxoQuebravel(FlowLayout.RIGHT, 8, 6));
         painel.setBackground(FUNDO);
-        painel.setBorder(new EmptyBorder(12, 24, 18, 24));
+        painel.setBorder(new EmptyBorder(6, 18, 12, 18));
         return painel;
+    }
+
+    /**
+     * Define o tamanho de uma janela sem passar da área útil da tela (descontando a barra de tarefas).
+     * Em notebooks com escala de 125% ou 150% a área útil é bem menor que a resolução.
+     */
+    public static void tamanhoNaTela(Window janela, int largura, int altura) {
+        if (janela instanceof RootPaneContainer rpc)
+            rpc.getRootPane().putClientProperty("reconstroi.tamanhoDesejado", new Dimension(largura, altura));
+        tamanhoNaTela(janela, largura, altura, areaUtil(janela));
+    }
+
+    /** Versão que recebe a área útil: usada também pelo teste de responsividade para simular telas menores. */
+    public static void tamanhoNaTela(Window janela, int largura, int altura, Rectangle area) {
+        int margem = 16;
+        janela.setSize(Math.min(largura, area.width - margem), Math.min(altura, area.height - margem));
+    }
+
+    public static Rectangle areaUtil(Component referencia) {
+        GraphicsConfiguration gc = referencia != null && referencia.getGraphicsConfiguration() != null
+            ? referencia.getGraphicsConfiguration()
+            : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        Rectangle tela = gc.getBounds();
+        Insets barra = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+        return new Rectangle(tela.x + barra.left, tela.y + barra.top,
+            tela.width - barra.left - barra.right, tela.height - barra.top - barra.bottom);
     }
 
     /** Converte códigos como "DOADOR_PESSOA_FISICA" ou "DISPONIVEL" em texto legível. */

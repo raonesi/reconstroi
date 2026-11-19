@@ -25,7 +25,7 @@ public class FrmCadastroVIEW extends JDialog {
     public FrmCadastroVIEW(Frame pai, Consumer<UsuarioDTO> aoCadastrar) {
         super(pai, "Cadastro — ReConstrói", true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(520, 610);
+        Estilo.tamanhoNaTela(this, 520, 640);
         setLocationRelativeTo(pai);
 
         JPanel raiz = new JPanel(new BorderLayout(0, 16));
@@ -43,7 +43,12 @@ public class FrmCadastroVIEW extends JDialog {
         campo(formulario, "Cidade", cidade);
         campo(formulario, "Estado (UF)", estado);
         campo(formulario, "CPF/CNPJ/Documento", documento);
-        raiz.add(formulario, BorderLayout.CENTER);
+        // Em telas baixas o formulário rola em vez de espremer os campos.
+        JScrollPane rolagem = new JScrollPane(formulario, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        rolagem.setBorder(BorderFactory.createEmptyBorder());
+        rolagem.getVerticalScrollBar().setUnitIncrement(16);
+        raiz.add(rolagem, BorderLayout.CENTER);
 
         JButton cadastrar = Estilo.botao("CADASTRAR");
         cadastrar.addActionListener(evento -> {

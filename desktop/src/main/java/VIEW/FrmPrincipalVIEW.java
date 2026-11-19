@@ -16,7 +16,8 @@ public class FrmPrincipalVIEW extends JFrame {
         this.usuario = usuario;
         setIconImages(Estilo.iconesAplicativo());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(1120, 720));
+        // Mínimo menor que a área útil de um notebook 1366x768 com escala 125% (≈1093x576).
+        setMinimumSize(new Dimension(900, 540));
         setExtendedState(MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
 
