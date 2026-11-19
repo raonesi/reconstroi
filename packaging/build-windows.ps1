@@ -1,4 +1,4 @@
-param(
+﻿param(
     [switch]$SkipApplicationBuild
 )
 
@@ -21,12 +21,14 @@ function Assert-UnderProject([string]$Path) {
 Assert-UnderProject $workRoot
 Assert-UnderProject $distRoot
 if (Test-Path -LiteralPath $workRoot) { Remove-Item -LiteralPath $workRoot -Recurse -Force }
-if (Test-Path -LiteralPath $distRoot) {
+if (Test-Path -LiteralPath (Join-Path $distRoot 'ReConstroi.exe')) {
     # Guarda o executável anterior para não perdê-lo caso o build falhe.
+    # Move os ARQUIVOS (não a pasta): a pasta pode estar aberta pelo OneDrive/Explorer e não poder ser movida.
     $backupRoot = Join-Path $projectRoot 'dist-anterior'
     Assert-UnderProject $backupRoot
     if (Test-Path -LiteralPath $backupRoot) { Remove-Item -LiteralPath $backupRoot -Recurse -Force }
-    Move-Item -LiteralPath $distRoot -Destination $backupRoot
+    New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
+    Get-ChildItem -LiteralPath $distRoot -Force | Move-Item -Destination $backupRoot
 }
 New-Item -ItemType Directory -Path $payloadRoot, $publishRoot, $distRoot -Force | Out-Null
 
