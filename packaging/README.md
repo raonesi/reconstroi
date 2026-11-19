@@ -21,9 +21,11 @@ Na primeira execução são criados:
 - `%LOCALAPPDATA%\ReConstroi\reconstroi.env`: configuração do PostgreSQL, JWT, administrador e e-mail;
 - `%LOCALAPPDATA%\ReConstroi\data`: fotos enviadas;
 - `%LOCALAPPDATA%\ReConstroi\logs`: logs da API e do aplicativo;
-- `%LOCALAPPDATA%\ReConstroi\runtime-v2`: componentes extraídos do executável.
+- `%LOCALAPPDATA%\ReConstroi\runtime-vN`: componentes extraídos do executável (N = `AppVersion` do launcher; versões antigas podem ser apagadas).
 
-O padrão local é PostgreSQL em `localhost:5432`, banco `reconstroi`, usuário `postgres` e senha definida em `DATABASE_PASSWORD`.
+O padrão local é PostgreSQL em `localhost:5432`, banco `reconstroi`, usuário `postgres`. Na primeira execução o `reconstroi.env` vem com `DATABASE_PASSWORD=troque-pela-senha-do-postgres`: troque pela senha real e reinicie. A API do executável escuta apenas em `127.0.0.1:8081`.
+
+Passo a passo completo (requisitos, banco, NetBeans, problemas comuns): [README principal](../README.md).
 
 ## Reconstrução
 

@@ -55,7 +55,7 @@ internal static class Program
 internal sealed class LauncherContext : ApplicationContext
 {
     // Aumente a cada mudança no pacote interno: força a extração da versão nova.
-    internal const string AppVersion = "6";
+    internal const string AppVersion = "7";
     private readonly NotifyIcon tray;
     private readonly string appRoot;
     private readonly string runtimeRoot;
@@ -204,6 +204,8 @@ internal sealed class LauncherContext : ApplicationContext
         }
 
         values["SERVER_PORT"] = "8081";
+        // A API do app instalado só atende este computador, nunca a rede (Wi-Fi da escola, do escritório...).
+        values["SERVER_ADDRESS"] = "127.0.0.1";
         values["PORT"] = "3000";
         values["HOSTNAME"] = "127.0.0.1";
         values["CORS_ALLOWED_ORIGINS"] = "http://localhost:3000,http://127.0.0.1:3000";

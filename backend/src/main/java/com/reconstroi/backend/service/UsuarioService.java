@@ -27,17 +27,31 @@ public class UsuarioService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final boolean exposeResetToken;
+    private final LimiteTentativas limite;
     private final SecureRandom random = new SecureRandom();
+    /** Hash fictício: o login com e-mail inexistente gasta o mesmo tempo que um com e-mail real. */
+    private final String hashFicticio;
 
     public UsuarioService(UsuarioRepository repository, TokenRecuperacaoSenhaRepository tokenRepository,
-            PasswordEncoder passwordEncoder, JwtService jwtService, EmailService emailService,
-            @Value("${app.auth.expose-reset-token:true}") boolean exposeResetToken) {
+            PasswordEncoder passwordEncoder, JwtService jwtService, EmailService emailService, LimiteTentativas limite,
+            @Value("${app.auth.expose-reset-token:false}") boolean exposeResetToken,
+            @Value("${server.address:}") String enderecoServidor) {
         this.repository = repository;
         this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.emailService = emailService;
-        this.exposeResetToken = exposeResetToken;
+        this.limite = limite;
+        // Devolver o token na resposta permite trocar a senha de qualquer conta só com o e-mail.
+        // Por isso só vale com a API presa a este computador (app desktop local, sem servidor de e-mail).
+        this.exposeResetToken = exposeResetToken && somenteLocal(enderecoServidor);
+        this.hashFicticio = passwordEncoder.encode("senha-ficticia-para-igualar-o-tempo");
+    }
+
+    private static boolean somenteLocal(String endereco) {
+        if (endereco == null || endereco.isBlank()) return false;
+        try { return java.net.InetAddress.getByName(endereco.trim()).isLoopbackAddress(); }
+        catch (java.net.UnknownHostException e) { return false; }
     }
 
     @Transactional
@@ -60,10 +74,17 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        Usuario usuario = repository.findByEmailIgnoreCase(request.email().trim())
-            .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos."));
-        if (!usuario.isAtivo() || !passwordEncoder.matches(request.senha(), usuario.getSenha()))
+        String email = request.email().trim().toLowerCase();
+        String chave = "login:" + email;
+        limite.verificar(chave);
+        Usuario usuario = repository.findByEmailIgnoreCase(email).orElse(null);
+        // Sempre compara uma senha (real ou fictícia) para não revelar pelo tempo se o e-mail existe.
+        boolean senhaConfere = passwordEncoder.matches(request.senha(), usuario == null ? hashFicticio : usuario.getSenha());
+        if (usuario == null || !usuario.isAtivo() || !senhaConfere) {
+            limite.registrarFalha(chave);
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos.");
+        }
+        limite.limpar(chave);
         return autenticar(usuario);
     }
 
@@ -79,6 +100,9 @@ public class UsuarioService {
 
     @Transactional
     public RecuperarSenhaResponse solicitarRecuperacao(RecuperarSenhaRequest request) {
+        String chave = "recuperar:" + request.email().trim().toLowerCase();
+        limite.verificar(chave);
+        limite.registrarFalha(chave); // cada pedido conta: evita encher a caixa de e-mail de alguém
         String rawToken = repository.findByEmailIgnoreCase(request.email().trim()).map(usuario -> {
             byte[] bytes = new byte[32];
             random.nextBytes(bytes);
@@ -99,8 +123,10 @@ public class UsuarioService {
         TokenRecuperacaoSenha token = tokenRepository
             .findByTokenHashAndUsadoFalseAndExpiraEmAfter(hash(request.token()), Instant.now())
             .orElseThrow(() -> BusinessException.badRequest("Token inválido ou expirado."));
+        // Trocar a senha muda a "versão" gravada nos tokens JWT: sessões abertas antes deixam de valer.
         token.getUsuario().setSenha(passwordEncoder.encode(request.novaSenha()));
         token.setUsado(true);
+        limite.limpar("login:" + token.getUsuario().getEmail().toLowerCase());
     }
 
     private AuthResponse autenticar(Usuario usuario) {

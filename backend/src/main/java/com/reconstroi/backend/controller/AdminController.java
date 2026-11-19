@@ -37,7 +37,7 @@ public class AdminController {
     @GetMapping("/usuarios")
     public Page<UsuarioResponse> usuarios(@PageableDefault(size = 20, sort = "criadoEm") Pageable page,
             @AuthenticationPrincipal Usuario admin) {
-        return adminService.listarUsuarios(page, admin);
+        return adminService.listarUsuarios(OrdenacaoSegura.validar(page, OrdenacaoSegura.USUARIO), admin);
     }
 
     @PatchMapping("/usuarios/{id}/ativo")
@@ -49,7 +49,7 @@ public class AdminController {
     @GetMapping("/materiais")
     public Page<MaterialResponse> materiais(@PageableDefault(size = 20, sort = "dataCadastro") Pageable page,
             @AuthenticationPrincipal Usuario admin) {
-        return adminService.listarMateriais(page, admin);
+        return adminService.listarMateriais(OrdenacaoSegura.validar(page, OrdenacaoSegura.MATERIAL), admin);
     }
 
     @DeleteMapping("/materiais/{id}")

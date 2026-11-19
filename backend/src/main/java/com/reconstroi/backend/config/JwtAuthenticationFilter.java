@@ -5,10 +5,12 @@ import java.io.IOException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.reconstroi.backend.model.Usuario;
 import com.reconstroi.backend.service.JwtService;
 
 import io.jsonwebtoken.JwtException;
@@ -35,13 +37,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 String token = authorization.substring(7);
-                var user = userDetailsService.loadUserByUsername(jwtService.extrairEmail(token));
-                if (user.isEnabled()) {
+                var claims = jwtService.ler(token);
+                var user = userDetailsService.loadUserByUsername(claims.getSubject());
+                // Senha trocada depois da emissão do token => token antigo não vale mais.
+                boolean versaoOk = user instanceof Usuario usuario && jwtService.versaoConfere(claims, usuario);
+                if (user.isEnabled() && versaoOk) {
                     var auth = new UsernamePasswordAuthenticationToken(user, token, user.getAuthorities());
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
-            } catch (JwtException | IllegalArgumentException ignored) {
+            } catch (JwtException | IllegalArgumentException | UsernameNotFoundException ignored) {
+                // Token inválido, expirado ou de usuário que não existe mais: segue sem autenticação (401).
                 SecurityContextHolder.clearContext();
             }
         }

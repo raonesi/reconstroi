@@ -240,8 +240,28 @@ public class MaterialService {
     }
 
     private void validarFoto(MultipartFile file) {
-        if (file == null || file.isEmpty() || file.getSize() > maxBytes || !IMAGE_TYPES.contains(file.getContentType()))
+        if (file == null || file.isEmpty() || file.getSize() > maxBytes || !IMAGE_TYPES.contains(file.getContentType())
+                || !assinaturaConfere(file))
             throw BusinessException.badRequest("Envie uma imagem JPG, PNG ou WebP de até 5 MB.");
+    }
+
+    /**
+     * O tipo informado pelo cliente (Content-Type) pode ser falso: confere os primeiros bytes do arquivo,
+     * que identificam o formato de verdade. Assim um HTML/script renomeado para .png é recusado.
+     */
+    private static boolean assinaturaConfere(MultipartFile file) {
+        byte[] b = new byte[12];
+        int lidos;
+        try (var in = file.getInputStream()) { lidos = in.readNBytes(b, 0, b.length); }
+        catch (IOException e) { return false; }
+        return switch (file.getContentType()) {
+            case "image/jpeg" -> lidos >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF;
+            case "image/png" -> lidos >= 8 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G'
+                && b[4] == 0x0D && b[5] == 0x0A && b[6] == 0x1A && b[7] == 0x0A;
+            case "image/webp" -> lidos >= 12 && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F'
+                && b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P';
+            default -> false;
+        };
     }
 
     private void validarDuplicidade(MaterialRequest request, Usuario usuario) {

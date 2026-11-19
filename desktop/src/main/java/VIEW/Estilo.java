@@ -162,6 +162,9 @@ public final class Estilo {
     /** Configura a tabela; se informado, executa {@code aoDuploClique} ao clicar duas vezes numa linha. */
     public static JScrollPane tabela(JTable tabela, Runnable aoDuploClique) {
         tabela.setRowHeight(34);
+        // Nomes vêm de outros usuários: um nome começando com "<html>" seria interpretado pelo Swing
+        // (podia carregar imagem de site externo e revelar o IP de quem abriu a lista). Mostra sempre como texto.
+        tabela.setDefaultRenderer(Object.class, new TextoSeguroRenderer());
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabela.setAutoCreateRowSorter(true);
         tabela.setFillsViewportHeight(true);
@@ -190,6 +193,11 @@ public final class Estilo {
         scroll.setOpaque(true);
         scroll.getViewport().setBackground(Color.WHITE);
         return scroll;
+    }
+
+    /** Célula de tabela que nunca interpreta HTML. */
+    static final class TextoSeguroRenderer extends DefaultTableCellRenderer {
+        TextoSeguroRenderer() { putClientProperty("html.disable", Boolean.TRUE); }
     }
 
     /** Barra de botões alinhada à direita, com o espaçamento padrão das telas. */

@@ -138,6 +138,40 @@ class ApiSecurityIntegrationTests {
     }
 
     @Test
+    void bloqueiaAtaquesComunsDeUploadOrdenacaoForcaBrutaESessaoAntiga() throws Exception {
+        String donor = register("Doador Segurança", "doador-seguranca@reconstroi.local", "DOADOR_CONSTRUTORA",
+            "DOADOR", "MATERIAL_CADASTRAR");
+
+        // Arquivo que diz ser PNG mas é texto/script.
+        MockMultipartFile falso = new MockMultipartFile("fotos", "x.png", MediaType.IMAGE_PNG_VALUE,
+            "<script>alert(1)</script>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        mockMvc.perform(multipart("/materiais").file(jsonPart(materialJson("Upload falso", 1, true))).file(falso)
+            .header(auth(), bearer(donor))).andExpect(status().isBadRequest());
+
+        // Ordenar pela senha de outro usuário (ou campo inexistente) é recusado.
+        mockMvc.perform(get("/materiais").param("sort", "proprietario.senha").header(auth(), bearer(donor)))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/materiais").param("sort", "naoExiste").header(auth(), bearer(donor)))
+            .andExpect(status().isBadRequest());
+
+        // Força bruta: depois de 10 senhas erradas, a conta fica temporariamente bloqueada (429).
+        for (int i = 0; i < 10; i++) {
+            mockMvc.perform(post("/usuarios/login").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"doador-seguranca@reconstroi.local\",\"senha\":\"errada" + i + "\"}"))
+                .andExpect(status().isUnauthorized());
+        }
+        mockMvc.perform(post("/usuarios/login").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"email\":\"doador-seguranca@reconstroi.local\",\"senha\":\"SenhaForte123!\"}"))
+            .andExpect(status().isTooManyRequests());
+
+        // Trocar a senha derruba as sessões abertas antes.
+        Usuario usuario = usuarios.findByEmailIgnoreCase("doador-seguranca@reconstroi.local").orElseThrow();
+        usuario.setSenha(encoder.encode("OutraSenha456!"));
+        usuarios.saveAndFlush(usuario);
+        mockMvc.perform(get("/usuarios/me").header(auth(), bearer(donor))).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void executaFluxoCompletoSemPularEtapasEPreservaDoacaoEHistorico() throws Exception {
         String donor = register("Doador Fluxo", "doador-fluxo-novo@reconstroi.local", "DOADOR_PESSOA_FISICA",
             "DOADOR", "MATERIAL_CADASTRAR");
@@ -265,7 +299,9 @@ class ApiSecurityIntegrationTests {
     }
 
     private MockMultipartFile photo() {
-        return new MockMultipartFile("fotos", "material.png", MediaType.IMAGE_PNG_VALUE, new byte[] {1, 2, 3, 4});
+        // PNG 1x1 de verdade: a API confere a assinatura do arquivo, não só o Content-Type.
+        return new MockMultipartFile("fotos", "material.png", MediaType.IMAGE_PNG_VALUE, java.util.Base64.getDecoder().decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="));
     }
 
     private void action(long id, String action, String token, String expected) throws Exception {

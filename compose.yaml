@@ -22,6 +22,8 @@ services:
     restart: unless-stopped
     environment:
       SERVER_PORT: 8081
+      # Dentro do contêiner a API precisa ouvir em todas as interfaces para o front alcançá-la.
+      SERVER_ADDRESS: 0.0.0.0
       DATABASE_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-reconstroi}
       DATABASE_USERNAME: ${POSTGRES_USER:-reconstroi}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}

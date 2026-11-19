@@ -18,4 +18,8 @@ cd backend
 java -jar ..\desktop\target\reconstroi-desktop.jar
 ```
 
+No NetBeans: abra esta pasta (`File → Open Project`) e use **Run** — a classe inicial já está configurada (`VIEW.FrmLoginVIEW`).
+
 Por padrão o aplicativo usa `http://127.0.0.1:8081`. Para outra API, defina `RECONSTROI_API_URL`.
+
+Passo a passo completo (requisitos, banco, configuração e problemas comuns): [README principal](../README.md).

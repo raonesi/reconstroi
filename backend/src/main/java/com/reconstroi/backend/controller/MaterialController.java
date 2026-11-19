@@ -28,7 +28,8 @@ public class MaterialController {
             @RequestParam(required = false) StatusMaterial status,
             @PageableDefault(size = 12, sort = "dataCadastro", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal Usuario usuario) {
-        return service.pesquisar(busca, categoriaId, cidade, estado, quantidadeMinima, conservacao, status, pageable, usuario);
+        return service.pesquisar(busca, categoriaId, cidade, estado, quantidadeMinima, conservacao, status,
+            OrdenacaoSegura.validar(pageable, OrdenacaoSegura.MATERIAL), usuario);
     }
 
     @GetMapping("/{id}")

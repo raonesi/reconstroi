@@ -1,6 +1,9 @@
 package com.reconstroi.backend.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.HexFormat;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
@@ -32,6 +35,7 @@ public class JwtService {
         String token = Jwts.builder()
             .subject(usuario.getEmail())
             .claim("tipo", usuario.getTipo().name())
+            .claim(VERSAO_SENHA, versaoSenha(usuario))
             .issuedAt(Date.from(agora))
             .expiration(Date.from(expiracao))
             .signWith(key)
@@ -39,10 +43,35 @@ public class JwtService {
         return new TokenResult(token, expiracao);
     }
 
-    public String extrairEmail(String token) {
-        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-        return claims.getSubject();
+    /** Valida assinatura e validade; lança JwtException se o token for inválido. */
+    public Claims ler(String token) {
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
+
+    public String extrairEmail(String token) {
+        return ler(token).getSubject();
+    }
+
+    /**
+     * O token guarda um resumo do hash da senha. Se a senha mudar (ex.: redefinição por suspeita de invasão),
+     * o resumo deixa de bater e todos os tokens emitidos antes param de funcionar.
+     */
+    public boolean versaoConfere(Claims claims, Usuario usuario) {
+        String versao = claims.get(VERSAO_SENHA, String.class);
+        return versao != null && MessageDigest.isEqual(versao.getBytes(StandardCharsets.UTF_8),
+            versaoSenha(usuario).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String versaoSenha(Usuario usuario) {
+        try {
+            byte[] resumo = MessageDigest.getInstance("SHA-256").digest(usuario.getSenha().getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(resumo, 0, 8);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static final String VERSAO_SENHA = "sv";
 
     public record TokenResult(String token, Instant expiraEm) {}
 }
